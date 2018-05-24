@@ -4,7 +4,6 @@
         "name": "Just Enough Torches",
         "description": "Adds various torches for various materials.",
         "version": "${version}",
-        "mcversion": "[1.12,1.13)",
         "authorList": [ "InsomniaKitten" ]
     }
 ]
