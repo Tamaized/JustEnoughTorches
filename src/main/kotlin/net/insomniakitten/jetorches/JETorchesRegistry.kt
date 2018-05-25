@@ -14,6 +14,7 @@ import net.minecraft.client.renderer.block.model.ModelResourceLocation
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.item.crafting.IRecipe
+import net.minecraft.util.ResourceLocation
 import net.minecraftforge.client.event.ModelRegistryEvent
 import net.minecraftforge.client.model.ModelLoader
 import net.minecraftforge.event.RegistryEvent.Register
@@ -41,34 +42,26 @@ object JETorchesRegistry {
 
     @SubscribeEvent
     fun onRecipeRegistry(event: Register<IRecipe>) {
-        ItemVariant.values().forEach {
-            val item = ItemStack(ITEMS[it.registryKey])
-            OreDictionary.registerOre(it.ore, item)
+        fun register(key: ResourceLocation, vararg ores: String) = ItemStack(ITEMS[key]).let {
+            ores.forEach { ore -> OreDictionary.registerOre(ore, it) }
         }
 
-        TorchVariant.values().forEach {
-            val item = ItemStack(ITEMS[it.registryKey])
-            OreDictionary.registerOre("torch", item)
-            OreDictionary.registerOre(it.ore, item)
-        }
-
-        LampVariant.values().forEach {
-            val item = ItemStack(ITEMS[it.registryKey])
-            OreDictionary.registerOre("blockLamp", item)
-            OreDictionary.registerOre(it.ore, item)
-        }
+        ItemVariant.values().forEach { register(it.registryKey, it.ore) }
+        TorchVariant.values().forEach { register(it.registryKey, "torch", it.ore) }
+        LampVariant.values().forEach { register(it.registryKey, "blockLamp", it.ore) }
     }
 
     @SubscribeEvent
     @SideOnly(Side.CLIENT)
     fun onModelRegistry(event: ModelRegistryEvent) {
-        fun register(item: Item, variant: String) {
-            val model = ModelResourceLocation(item.registryName!!, variant)
-            ModelLoader.setCustomModelResourceLocation(item, 0, model)
+        fun register(key: ResourceLocation, variant: String) = ITEMS[key].let {
+            ModelResourceLocation(it.registryName!!, variant).let { model ->
+                ModelLoader.setCustomModelResourceLocation(it, 0, model)
+            }
         }
 
-        ItemVariant.values().forEach { register(ITEMS[it.registryKey], "inventory") }
-        TorchVariant.values().forEach { register(ITEMS[it.registryKey], "inventory") }
-        LampVariant.values().forEach { register(ITEMS[it.registryKey], "powered=false") }
+        ItemVariant.values().forEach { register(it.registryKey, "inventory") }
+        TorchVariant.values().forEach { register(it.registryKey, "inventory") }
+        LampVariant.values().forEach { register(it.registryKey, "powered=false") }
     }
 }
