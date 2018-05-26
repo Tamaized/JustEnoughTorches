@@ -5,8 +5,10 @@ import net.insomniakitten.jetorches.util.get
 import net.minecraft.item.ItemBlock
 import net.minecraftforge.fml.common.registry.ForgeRegistries.BLOCKS
 
-class VariantBlockItem(it: ResourceSupplier) : ItemBlock(BLOCKS[it.registryKey]) {
+class VariantBlockItem(
+        supplier: ResourceSupplier
+) : ItemBlock(BLOCKS[supplier.registryKey]) {
     init {
-        registryName = it.registryKey
+        registryName = supplier.registryKey
     }
 }

@@ -4,36 +4,33 @@ import net.insomniakitten.jetorches.JETorches
 import net.insomniakitten.jetorches.JETorchesConfig
 import net.minecraft.block.state.IBlockState
 import net.minecraft.client.Minecraft
-import net.minecraft.util.math.BlockPos
-import net.minecraft.world.IBlockAccess
-import net.minecraftforge.fml.common.Loader
+import net.minecraftforge.fml.common.Loader.isModLoaded
 import net.minecraftforge.fml.common.SidedProxy
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
+import java.util.function.Function
 
-fun IBlockState.getSidedLightValue(access: IBlockAccess, pos: BlockPos) =
-        SidedLightProxy.instance(this, access, pos)
+private typealias LightFunction = Function<IBlockState, Int>
+
+val IBlockState.sidedLightValue get() = SidedLightProxy.instance.apply(this)
 
 @Suppress("unused", "DEPRECATION")
 object SidedLightProxy {
-    private const val CLIENT = "net.insomniakitten.jetorches.light.SidedLightProxy\$ClientImpl"
-    private const val SERVER = "net.insomniakitten.jetorches.light.SidedLightProxy\$Impl"
-
-    @SidedProxy(modId = JETorches.ID, clientSide = CLIENT, serverSide = SERVER)
-    internal lateinit var instance: Impl
-
-    open class Impl {
-        open operator fun invoke(state: IBlockState, access: IBlockAccess, pos: BlockPos) =
-                state.lightValue
-    }
+    @SidedProxy(modId = JETorches.ID)
+    lateinit var instance: LightFunction
+        private set
 
     @SideOnly(Side.CLIENT)
-    class ClientImpl : Impl() {
-        private val hasProvider = Loader.isModLoaded("mirage") || Loader.isModLoaded("albedo")
+    class ClientProxy : LightFunction {
+        private val hasProvider by lazy { isModLoaded("mirage") || isModLoaded("albedo") }
         private val isEnabled get() = JETorchesConfig.coloredLighting
         private val isClient get() = Minecraft.getMinecraft().world.isRemote
 
-        override fun invoke(state: IBlockState, access: IBlockAccess, pos: BlockPos) =
-                if (hasProvider && isEnabled && isClient) 0 else state.lightValue
+        override fun apply(state: IBlockState) = if (hasProvider && isEnabled && isClient) 0 else state.lightValue
+    }
+
+    @SideOnly(Side.SERVER)
+    class ServerProxy : LightFunction {
+        override fun apply(state: IBlockState) = state.lightValue
     }
 }

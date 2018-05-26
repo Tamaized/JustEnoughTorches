@@ -4,10 +4,11 @@ import net.minecraft.block.material.EnumPushReaction
 import net.minecraft.block.material.MapColor
 import net.minecraft.block.material.Material
 
-class TorchMaterial private constructor(private val canWorkUnderwater: Boolean) : Material(MapColor.AIR) {
-    init {
-        setAdventureModeExempt()
-    }
+sealed class TorchMaterial(
+        private val canWorkUnderwater: Boolean
+) : Material(MapColor.AIR) {
+    object Normal : TorchMaterial(false)
+    object Underwater : TorchMaterial(true)
 
     override fun isSolid() = false
 
@@ -15,13 +16,5 @@ class TorchMaterial private constructor(private val canWorkUnderwater: Boolean) 
 
     override fun blocksMovement() = canWorkUnderwater
 
-    override fun getMobilityFlag() =
-            if (canWorkUnderwater) {
-                EnumPushReaction.NORMAL
-            } else EnumPushReaction.DESTROY
-
-    companion object {
-        val NORMAL = TorchMaterial(false)
-        val UNDERWATER = TorchMaterial(true)
-    }
+    override fun getMobilityFlag() = EnumPushReaction.DESTROY
 }

@@ -3,7 +3,7 @@ package net.insomniakitten.jetorches.block
 import net.insomniakitten.jetorches.JETorches
 import net.insomniakitten.jetorches.JETorchesConfig
 import net.insomniakitten.jetorches.light.ColoredLight
-import net.insomniakitten.jetorches.light.getSidedLightValue
+import net.insomniakitten.jetorches.light.sidedLightValue
 import net.insomniakitten.jetorches.util.get
 import net.insomniakitten.jetorches.util.set
 import net.insomniakitten.jetorches.util.with
@@ -18,7 +18,9 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 
-class LampBlock(val variant: LampVariant) : Block(Material.GLASS) {
+class LampBlock(
+        val variant: LampVariant
+) : Block(Material.GLASS) {
     init {
         registryName = variant.registryKey
         unlocalizedName = variant.translationKey
@@ -34,28 +36,24 @@ class LampBlock(val variant: LampVariant) : Block(Material.GLASS) {
 
     override fun getMetaFromState(state: IBlockState) = if (state[POWERED]) 1 else 0
 
-    override fun neighborChanged(state: IBlockState, world: World, pos: BlockPos, block: Block, fromPos: BlockPos) =
+    override fun neighborChanged(state: IBlockState, world: World, pos: BlockPos, block: Block, neighbor: BlockPos) =
             updatePoweredState(state, world, pos)
 
     override fun onBlockAdded(world: World, pos: BlockPos, state: IBlockState) =
             updatePoweredState(state, world, pos)
 
     override fun getLightValue(state: IBlockState, access: IBlockAccess, pos: BlockPos) =
-            if (state[POWERED]) state.getSidedLightValue(access, pos) else 0
+            if (state[POWERED]) state.sidedLightValue else 0
 
     override fun hasTileEntity(state: IBlockState) = JETorchesConfig.coloredLighting && state[POWERED]
 
     override fun createTileEntity(world: World, state: IBlockState) = variant.run {
-        if (hasTileEntity(state)) {
-            ColoredLight(color, radius)
-        } else null
+        if (hasTileEntity(state)) ColoredLight(color, radius) else null
     }
 
     private fun updatePoweredState(state: IBlockState, world: World, pos: BlockPos) {
         if (!world.isRemote) world.isBlockPowered(pos).let {
-            if (it != state[POWERED]) {
-                world[pos] = state.with(POWERED, it) to 2
-            }
+            if (it != state[POWERED]) world[pos] = state.with(POWERED, it) to 2
         }
     }
 

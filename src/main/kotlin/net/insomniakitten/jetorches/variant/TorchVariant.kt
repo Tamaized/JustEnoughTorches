@@ -27,8 +27,8 @@ enum class TorchVariant(
     GOLDEN("torchGold", 14, 0xEBBC3C, SoundType.METAL, EnumParticleTypes.FLAME, 0.0f, 30.0f);
 
     val material = if (canWorkUnderwater) {
-        TorchMaterial.UNDERWATER
-    } else TorchMaterial.NORMAL
+        TorchMaterial.Underwater
+    } else TorchMaterial.Normal
 
     override val radius = light * 6.0F
 
